@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publications Viewer</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+        #dropzone {
+            border: 2px dashed #007bff;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .dragover {
+            border-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Publications Viewer</h2>
+        <input type="text" id="search-input" class="form-control mb-3" placeholder="Search by name or filename...">
+        <button id="delete-button" class="btn btn-danger mb-3" disabled>Delete (<span id="selected-count">0</span>)</button>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col"><input type="checkbox" id="select-all"></th>
+                    <th scope="col" class="sortable" data-sort="name">Name</th>
+                    <th scope="col" class="sortable" data-sort="filename">Filename</th>
+                </tr>
+            </thead>
+            <tbody id="publications-table-body">
+                <!-- Publications will be populated here -->
+            </tbody>
+        </table>
+
+        <h3>Add Publications</h3>
+        <div id="dropzone" class="mb-3">
+            Drop files here to add publications
+        </div>
+        <table class="table table-bordered" id="new-publications-table">
+            <thead>
+                <tr>
+                    <th scope="col">Cancel</th>
+                    <th scope="col">Publication Name</th>
+                    <th scope="col">Filename</th>
+                </tr>
+            </thead>
+            <tbody id="new-publications-table-body">
+                <!-- New publications rows will be populated here -->
+            </tbody>
+        </table>
+        <button id="add-publications-button" class="btn btn-primary" disabled>Add (<span id="new-count">0</span>)</button>
+    </div>
+
+    <script>
+        let publications = []; // To store fetched publications
+        let newPublications = []; // To store new publications to be added
+
+        $(document).ready(function() {
+            fetchPublications();
+
+            // Fetch publications from the API
+            function fetchPublications() {
+                $.ajax({
+                    url: '/api/v1/publications',
+                    method: 'GET',
+                    success: function(data) {
+                        publications = data; // Store publications
+                        populateTable(publications);
+                    },
+                    error: function(error) {
+                        console.error('Error fetching publications:', error);
+                    }
+                });
+            }
+
+            // Populate the table with publications data
+            function populateTable(data) {
+                const tableBody = $('#publications-table-body');
+                tableBody.empty();
+
+                data.forEach(publication => {
+                    const row = `
+                        <tr>
+                            <td><input type="checkbox" class="publication-checkbox" data-uuid="${publication.id}"></td>
+                            <td>${publication.name}</td>
+                            <td><a href="#" class="download-link" data-uuid="${publication.id}">${publication.filename}</a></td>
+                        </tr>
+                    `;
+                    tableBody.append(row);
+                });
+
+                updateSelectedCount();
+
+                // Attach click event to download links
+                $('.download-link').on('click', function(event) {
+                    event.preventDefault();
+                    const uuid = $(this).data('uuid');
+                    downloadFile(uuid);
+                });
+
+                // Attach change event to checkboxes
+                $('.publication-checkbox').on('change', updateSelectedCount);
+            }
+
+            // Download the file using the UUID
+            function downloadFile(uuid) {
+                $.ajax({
+                    url: `/api/v1/publications/${uuid}`,
+                    method: 'GET',
+                    success: function(data) {
+                        const link = document.createElement('a');
+                        const blob = base64ToBlob(data.file, 'application/octet-stream');
+                        const url = URL.createObjectURL(blob);
+
+                        link.href = url;
+                        link.download = data.filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    },
+                    error: function(error) {
+                        console.error('Error downloading file:', error);
+                    }
+                });
+            }
+
+            // Convert base64 to Blob
+            function base64ToBlob(base64, type) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                return new Blob([bytes], { type: type });
+            }
+
+            // Select/Deselect all checkboxes
+            $('#select-all').on('change', function() {
+                $('.publication-checkbox').prop('checked', this.checked);
+                updateSelectedCount();
+            });
+
+            // Update selected count and toggle delete button
+            function updateSelectedCount() {
+                const selectedCount = $('.publication-checkbox:checked').length;
+                $('#selected-count').text(selectedCount);
+                $('#delete-button').prop('disabled', selectedCount === 0);
+            }
+
+            // Search functionality
+            $('#search-input').on('input', function() {
+                const query = $(this).val().toLowerCase();
+                $('#publications-table-body tr').each(function() {
+                    const name = $(this).find('td:nth-child(2)').text().toLowerCase();
+                    const filename = $(this).find('td:nth-child(3)').text().toLowerCase();
+                    $(this).toggle(name.includes(query) || filename.includes(query));
+                });
+            });
+
+            // Sort functionality
+            $('.sortable').on('click', function() {
+                const sortKey = $(this).data('sort');
+                publications.sort((a, b) => a[sortKey].localeCompare(b[sortKey]));
+                populateTable(publications);
+            });
+
+            // Drag-and-drop functionality
+            const dropzone = $('#dropzone');
+            dropzone.on('dragover', function(event) {
+                event.preventDefault();
+                dropzone.addClass('dragover');
+            });
+
+            dropzone.on('dragleave', function() {
+                dropzone.removeClass('dragover');
+            });
+
+            dropzone.on('drop', function(event) {
+                event.preventDefault();
+                dropzone.removeClass('dragover');
+                const files = event.originalEvent.dataTransfer.files;
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const row = `
+                        <tr>
+                            <td><input type="checkbox" class="cancel-checkbox" data-filename="${file.name}"></td>
+                            <td><input type="text" class="form-control publication-name" placeholder="Publication name"></td>
+                            <td>${file.name}</td>
+                        </tr>
+                    `;
+                    $('#new-publications-table-body').append(row);
+                    newPublications.push(file);
+                }
+                updateNewCount();
+            });
+
+            // Update new publications count
+            function updateNewCount() {
+                const newCount = $('#new-publications-table-body tr').length;
+                $('#new-count').text(newCount);
+                $('#add-publications-button').prop('disabled', newCount === 0);
+            }
+
+            // Add publications functionality
+            $('#add-publications-button').on('click', function() {
+                const errors = [];
+                let completedRequests = 0; // To track completed requests
+
+                $('#new-publications-table-body tr').each(function() {
+                    const name = $(this).find('.publication-name').val();
+                    const cancelCheckbox = $(this).find('.cancel-checkbox');
+
+                    if (cancelCheckbox.is(':checked')) {
+                        completedRequests++;
+                        return; // Skip cancelled entries
+                    }
+
+                    if (name.trim() === '') {
+                        errors.push('Publication name is required for every file.');
+                        completedRequests++; // Increment completed requests even if there's an error
+                        return;
+                    }
+
+                    const file = newPublications[$(this).index()];
+
+                    // Create a FileReader to read the contents of the file
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const arrayBuffer = event.target.result;
+                        const base64String = arrayBufferToBase64(arrayBuffer); // Convert ArrayBuffer to Base64
+
+                        const publicationData = {
+                            name: name,
+                            filename: file.name,
+                            file: base64String // Base64 encoded file contents
+                        };
+
+                        // Send each publication as an individual request
+                        $.ajax({
+                            url: '/api/v1/publications', // Adjust the endpoint as necessary
+                            method: 'POST',
+                            contentType: 'application/json', // Send as JSON
+                            data: JSON.stringify(publicationData),
+                            success: function() {
+                                alert(`Publication "${name}" added successfully!`);
+                                // Optionally, remove the row from the table after success
+                                $(this).closest('tr').remove(); // Remove the row for the added publication
+                                updateNewCount();
+                            }.bind(this), // Bind 'this' to access the table row
+                            error: function(error) {
+                                console.error(`Error adding publication "${name}":`, error);
+                                errors.push(`Error adding "${name}": ${error.responseText || 'Unknown error'}`);
+                            }
+                        });
+                        completedRequests++;
+                        checkCompletion(); // Check completion after each request
+                        fetchPublications();
+                    }.bind(this); // Bind 'this' to access the table row
+
+                    reader.onerror = function() {
+                        console.error(`Error reading file "${file.name}":`, error);
+                        errors.push(`Error reading file "${file.name}"`);
+                        completedRequests++;
+                        checkCompletion(); // Check completion even on error
+                    };
+
+                    reader.readAsArrayBuffer(file); // Read the file as an ArrayBuffer
+                });
+
+                // Check if all requests have completed and report errors
+                function checkCompletion() {
+                    if (completedRequests === $('#new-publications-table-body tr').length) {
+                        if (errors.length) {
+                            alert(errors.join('\n'));
+                        }
+                    }
+                }
+
+                // Function to convert ArrayBuffer to Base64
+                function arrayBufferToBase64(buffer) {
+                    const bytes = new Uint8Array(buffer);
+                    let binary = '';
+                    const len = bytes.byteLength;
+                    for (let i = 0; i < len; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return btoa(binary); // Convert binary string to Base64
+                }
+            });
+
+
+            // Handle delete button click
+            $('#delete-button').on('click', function() {
+                const selectedUuids = $('.publication-checkbox:checked').map(function() {
+                    return $(this).data('uuid');
+                }).get(); // Get an array of selected UUIDs
+
+                if (selectedUuids.length === 0) {
+                    return; // No selected UUIDs, exit early
+                }
+
+                if (confirm(`Are you sure you want to delete ${selectedUuids.length} publication(s)?`)) {
+                    const deleteRequests = selectedUuids.map(uuid => {
+                        return $.ajax({
+                            url: `/api/v1/publications/${uuid}`,
+                            method: 'DELETE'
+                        });
+                    });
+
+                    // Wait for all delete requests to finish
+                    $.when(...deleteRequests)
+                        .done(function() {
+                            alert('Selected publications deleted successfully!');
+                            fetchPublications(); // Refresh the publications table
+                        })
+                        .fail(function(error) {
+                            console.error('Error deleting publications:', error);
+                            alert('An error occurred while deleting publications.');
+                        });
+                }
+            });
+
+        });
+    </script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
