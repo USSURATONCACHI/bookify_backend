@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publications Viewer</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Publications Viewer</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col"><input type="checkbox" id="select-all"></th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Filename</th>
+                </tr>
+            </thead>
+            <tbody id="publications-table-body">
+                <!-- Publications will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            fetchPublications();
+
+            // Fetch publications from the API
+            function fetchPublications() {
+                $.ajax({
+                    url: '/api/v1/publications',
+                    method: 'GET',
+                    success: function(data) {
+                        populateTable(data);
+                    },
+                    error: function(error) {
+                        console.error('Error fetching publications:', error);
+                    }
+                });
+            }
+
+            // Populate the table with publications data
+            function populateTable(publications) {
+                const tableBody = $('#publications-table-body');
+                tableBody.empty();
+
+                publications.forEach(publication => {
+                    const row = `
+                        <tr>
+                            <td><input type="checkbox" class="publication-checkbox" data-uuid="${publication.id}"></td>
+                            <td>${publication.name}</td>
+                            <td><a href="#" class="download-link" data-uuid="${publication.id}">${publication.filename}</a></td>
+                        </tr>
+                    `;
+                    tableBody.append(row);
+                });
+
+                // Attach click event to download links
+                $('.download-link').on('click', function(event) {
+                    event.preventDefault();
+                    const uuid = $(this).data('uuid');
+                    downloadFile(uuid);
+                });
+            }
+
+            // Download the file using the UUID
+            function downloadFile(uuid) {
+                $.ajax({
+                    url: `/api/v1/publications/${uuid}`,
+                    method: 'GET',
+                    success: function(data) {
+                        const link = document.createElement('a');
+                        const blob = base64ToBlob(data.file, 'application/octet-stream');
+                        const url = URL.createObjectURL(blob);
+
+                        link.href = url;
+                        link.download = data.filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    },
+                    error: function(error) {
+                        console.error('Error downloading file:', error);
+                    }
+                });
+            }
+
+            // Convert base64 to Blob
+            function base64ToBlob(base64, type) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                return new Blob([bytes], { type: type });
+            }
+
+            // Select/Deselect all checkboxes
+            $('#select-all').on('change', function() {
+                $('.publication-checkbox').prop('checked', this.checked);
+            });
+        });
+    </script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
