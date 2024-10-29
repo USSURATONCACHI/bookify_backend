@@ -10,8 +10,6 @@ use actix_web::App;
 use actix_web::web;
 
 use dotenv::dotenv;
-
-
 use log::info;
 
 #[actix_web::main]
@@ -24,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
-            .configure(publications::config)
+            .configure(|cfg| publications::config(cfg, "/api/v1/"))
             .wrap(Logger::default())
     })
     .bind(("0.0.0.0", 8080))?

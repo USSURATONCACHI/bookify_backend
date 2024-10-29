@@ -5,20 +5,20 @@ use crate::schema::publications::dsl::*;
 use diesel::prelude::*;
 use actix_web::{web, HttpResponse, Responder};
 
-pub fn config(cfg: &mut web::ServiceConfig) {
+pub fn config(cfg: &mut web::ServiceConfig, base_path: &str) {
     cfg.service(
-        web::resource("/publications")
+        web::resource(format!("{}{}", base_path, "publications"))
             .route(web::post().to(create_publication))
             .route(web::get().to(get_all_publications)),
     )
     .service(
-        web::resource("/publications/{id}")
+        web::resource(format!("{}{}", base_path, "publications/{id}"))
             .route(web::get().to(get_publication))
             .route(web::put().to(update_publication))
             .route(web::delete().to(delete_publication)),
     )
     .service(
-        web::resource("/publications/brief/{id}")
+        web::resource(format!("{}{}", base_path, "publications/brief/{id}"))
             .route(web::get().to(get_brief_publication))
     );
 }
