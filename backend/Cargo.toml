@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+actix-files = "0.6.6"
 actix-web = "4.9.0"
 base64 = "0.22.1"
 diesel = { version = "2.2.4", features = ["postgres", "r2d2", "uuid"] }

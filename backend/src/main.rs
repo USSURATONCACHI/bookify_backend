@@ -23,6 +23,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .configure(|cfg| publications::config(cfg, "/api/v1/"))
+            .service(actix_files::Files::new("/", "./static").show_files_listing())
             .wrap(Logger::default())
     })
     .bind(("0.0.0.0", 8080))?

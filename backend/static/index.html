@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publications Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .publication {
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #newPublicationForm {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Publications</h1>
+    <div id="publicationsContainer"></div>
+
+    <div id="newPublicationForm">
+        <h2>Add New Publication</h2>
+        <input type="text" id="pubName" placeholder="Publication Name" required>
+        <input type="file" id="pubFile" required>
+        <button onclick="addPublication()">Add Publication</button>
+    </div>
+
+    <script>
+        const apiUrl = '/api/v1/publications';
+
+        async function fetchPublications() {
+            try {
+                const response = await fetch(apiUrl);
+                const publications = await response.json();
+                displayPublications(publications);
+            } catch (error) {
+                console.error('Error fetching publications:', error);
+            }
+        }
+
+        function displayPublications(publications) {
+            const container = document.getElementById('publicationsContainer');
+            container.innerHTML = ''; // Clear previous content
+            publications.forEach(pub => {
+                const publicationDiv = document.createElement('div');
+                publicationDiv.className = 'publication';
+                publicationDiv.innerHTML = `
+                    <strong>${pub.name}</strong>
+                    <button onclick="deletePublication('${pub.id}')">Delete</button>
+                `;
+                container.appendChild(publicationDiv);
+            });
+        }
+
+        async function addPublication() {
+            const name = document.getElementById('pubName').value;
+            const fileInput = document.getElementById('pubFile');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onloadend = async function () {
+                const base64data = reader.result.split(',')[1]; // Get base64 data
+                const newPublication = {
+                    name: name,
+                    file: base64data
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newPublication)
+                    });
+                    if (response.ok) {
+                        // Reset form and fetch publications again
+                        document.getElementById('newPublicationForm').reset();
+                        fetchPublications();
+                    } else {
+                        console.error('Error adding publication:', response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Error adding publication:', error);
+                }
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function deletePublication(id) {
+            try {
+                const response = await fetch(`${apiUrl}/${id}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    fetchPublications(); // Refresh the publication list
+                } else {
+                    console.error('Error deleting publication:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error deleting publication:', error);
+            }
+        }
+
+        // Fetch publications on page load
+        window.onload = fetchPublications;
+    </script>
+
+</body>
+</html>
