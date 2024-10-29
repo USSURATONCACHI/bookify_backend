@@ -57,6 +57,7 @@
                 publicationDiv.className = 'publication';
                 publicationDiv.innerHTML = `
                     <strong>${pub.name}</strong>
+                    <span>${pub.filename}</span>
                     <button onclick="deletePublication('${pub.id}')">Delete</button>
                 `;
                 container.appendChild(publicationDiv);

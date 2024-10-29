@@ -30,7 +30,7 @@ async fn get_all_publications(
     let mut conn = pool.get().expect("couldn't get db connection from pool");
 
     let pubs =publications
-        .select((id, name))
+        .select((id, name, filename))
         .load::<PublicationName>(&mut conn)
         .expect("Error loading publication names");
 
@@ -45,7 +45,7 @@ async fn get_brief_publication(
 
     let publication = publications
         .filter(id.eq(pub_id.into_inner()))
-        .select((id, name))
+        .select((id, name, filename))
         .first::<PublicationName>(&mut conn)
         .optional()
         .expect("Error loading publication");
@@ -66,6 +66,7 @@ async fn create_publication(
     let new_publication = NewPublication {
         name: publication_data.name.clone(),
         file: publication_data.file.clone(),
+        filename: publication_data.filename.clone(),
     };
 
     diesel::insert_into(publications)

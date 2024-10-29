@@ -9,6 +9,7 @@ pub struct Publication {
     pub id: Uuid,
     pub name: String,
 
+    pub filename: String,
     #[serde(serialize_with = "serialize_base64", deserialize_with = "deserialize_base64")]
     pub file: Vec<u8>,
 }
@@ -17,6 +18,7 @@ pub struct Publication {
 pub struct PublicationName {
     pub id: Uuid,
     pub name: String,
+    pub filename: String,
 }
 
 
@@ -24,6 +26,7 @@ pub struct PublicationName {
 #[diesel(table_name = publications)]
 pub struct NewPublication {
     pub name: String,
+    pub filename: String,
 
     #[serde(serialize_with = "serialize_base64", deserialize_with = "deserialize_base64")]
     pub file: Vec<u8>,
