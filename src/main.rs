@@ -3,6 +3,7 @@ pub mod models;
 pub mod db;
 
 use actix_web::{web, App, HttpServer, HttpResponse, Responder};
+use actix_web::middleware::Logger;
 use diesel::prelude::*;
 use dotenv::dotenv;
 
@@ -10,11 +11,14 @@ use db::DbPool;
 use models::{Publication, NewPublication};
 use schema::publications::dsl::*;
 
+use log::info;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
     dotenv().ok();
+    env_logger::init();
+    info!("This is an info message.");
+
 
     let pool = db::establish_connection();
     HttpServer::new(move || {
@@ -25,6 +29,7 @@ async fn main() -> std::io::Result<()> {
             .route("/publications/{id}", web::get().to(get_publication))
             .route("/publications/{id}", web::put().to(update_publication))
             .route("/publications/{id}", web::delete().to(delete_publication))
+            .wrap(Logger::default())
     })
     .bind(("0.0.0.0", 8080))?
         .run()
