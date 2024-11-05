@@ -1,6 +1,6 @@
 
 use crate::db::DbPool;
-use crate::models::{DigitalPublication, NewDigitalPublication, Source};
+use crate::models::{DigitalPublication, NewDigitalPublication};
 use crate::schema::digital_publications::dsl::*;
 use diesel::prelude::*;
 use actix_web::{web, HttpResponse, Responder};

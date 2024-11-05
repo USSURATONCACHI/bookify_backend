@@ -1,18 +1,9 @@
-// use super::schema::publications;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
-use diesel::{Insertable, IntoSql, Queryable};
-use diesel::deserialize::{FromSql, FromSqlRow};
-use diesel::sql_types::{Uuid as SqlUuid, Nullable, Text};
-use diesel::backend::Backend;
-use diesel::result::QueryResult;
-use diesel::pg::Pg;
-
-
-use base64::prelude::*;
-
+use diesel::{Insertable, Queryable};
 use crate::schema::digital_publications;
+use crate::schema::sources;
 
 
 #[derive(Queryable, Serialize)]
@@ -22,7 +13,7 @@ pub struct Source {
 }
 
 #[derive(Insertable, Deserialize)]
-#[diesel(table_name = crate::schema::sources)]
+#[diesel(table_name = sources)]
 pub struct NewSource {
     pub name: String,
 }
