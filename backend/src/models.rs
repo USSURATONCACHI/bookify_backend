@@ -1,56 +1,50 @@
-use super::schema::publications;
-use diesel::{Queryable, Insertable};
+// use super::schema::publications;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
+
+use diesel::{Insertable, IntoSql, Queryable};
+use diesel::deserialize::{FromSql, FromSqlRow};
+use diesel::sql_types::{Uuid as SqlUuid, Nullable, Text};
+use diesel::backend::Backend;
+use diesel::result::QueryResult;
+use diesel::pg::Pg;
+
+
 use base64::prelude::*;
 
-#[derive(Queryable, Serialize)]
-pub struct Publication {
-    pub id: Uuid,
-    pub name: String,
+use crate::schema::digital_publications;
 
-    pub filename: String,
-    #[serde(serialize_with = "serialize_base64", deserialize_with = "deserialize_base64")]
-    pub file: Vec<u8>,
-}
 
 #[derive(Queryable, Serialize)]
-pub struct PublicationName {
-    pub id: Uuid,
+pub struct Source {
+    pub uuid: Uuid,
     pub name: String,
-    pub filename: String,
 }
-
 
 #[derive(Insertable, Deserialize)]
-#[diesel(table_name = publications)]
-pub struct NewPublication {
+#[diesel(table_name = crate::schema::sources)]
+pub struct NewSource {
     pub name: String,
-    pub filename: String,
-
-    #[serde(serialize_with = "serialize_base64", deserialize_with = "deserialize_base64")]
-    pub file: Vec<u8>,
-}
-
-fn serialize_base64<S>(data: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let encoded = BASE64_STANDARD.encode(data);
-    serializer.serialize_str(&encoded)
-}
-
-// Deserialization function for Base64
-fn deserialize_base64<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let base64_str: String = Deserialize::deserialize(deserializer)?;
-    BASE64_STANDARD.decode(&base64_str).map_err(serde::de::Error::custom)
 }
 
 
-// pub struct NewPublicationJson {
-//     pub name: String,
-//     pub file: String,
-// }
+#[derive(Queryable, Serialize)]
+pub struct DigitalPublication {
+    pub uuid: Uuid,
+    pub source: Option<Uuid>,
+
+    pub name: String,
+    pub description: String,
+    pub cover_url: String,
+    pub links: Vec<Option<String>>,
+}
+
+#[derive(Insertable, Deserialize)]
+#[diesel(table_name = digital_publications)]
+pub struct NewDigitalPublication {
+    pub name: String,
+    pub source: Uuid,
+    pub description: String,
+    pub cover_url: String,
+    pub links: Vec<String>,
+}
