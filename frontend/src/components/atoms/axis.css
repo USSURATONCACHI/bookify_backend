@@ -1,0 +1,17 @@
+ul {
+  display: block;
+  border: 2px solid red;
+  position: relative;
+  height: 4rem;
+  font-size: 4rem;
+  user-select: none;
+}
+
+li {
+  position: absolute;
+  /* left: 5%; */
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  font-weight: bold;
+}
