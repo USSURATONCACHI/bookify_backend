@@ -19,32 +19,6 @@ pub struct AxisProps {
     pub children: ChildrenWithProps<AxisItem>,
 }
 
-impl AxisProps {
-    fn get_min(&self) -> f64 {
-        if let Some(m) = self.min {
-            return m;
-        }
-        let m = self
-            .children
-            .iter()
-            .map(|x| x.props.value)
-            .min_by(|a, b| a.total_cmp(b));
-        return m.unwrap();
-    }
-
-    fn get_max(&self) -> f64 {
-        if let Some(m) = self.max {
-            return m;
-        }
-        let m = self
-            .children
-            .iter()
-            .map(|x| x.props.value)
-            .max_by(|a, b| a.total_cmp(b));
-        return m.unwrap();
-    }
-}
-
 const STYLE: &'static str = include_str!("axis.css");
 
 #[styled_component(Axis)]
@@ -92,45 +66,6 @@ pub fn axis(props: &AxisProps) -> Html {
             gloo::console::log!("Scrolled! ", *shown_max);
         }
     });
-
-    // let is_mouse_down = use_state(|| false);
-
-    // let onmousedown = {
-    //     let is_mouse_down = is_mouse_down.clone();
-    //     Callback::from(move |event: MouseEvent| {
-    //         is_mouse_down.set(true);
-    //         gloo::console::log!("Mouse Down at:", event.client_x(), event.client_y());
-    //         gloo::console::log!("Is downff: ", *is_mouse_down);
-    //     })
-    // };
-
-    // let _onmouseup = use_state(|| {
-    //     let is_mouse_down = is_mouse_down.clone();
-    //     let callback = Closure::wrap(Box::new(move |event: MouseEvent| {
-    //         // is_mouse_down.set(false);
-    //         gloo::console::log!("Mouse Up at:", event.client_x(), event.client_y());
-    //     }) as Box<dyn FnMut(_)>);
-    //     web_sys::window()
-    //         .unwrap()
-    //         .add_event_listener_with_callback("mouseup", callback.as_ref().unchecked_ref())
-    //         .unwrap();
-    //     callback.forget();
-    // });
-
-    // let _onmousemove = use_state(|| {
-    //     let is_mouse_down = is_mouse_down.clone();
-    //     let callback = Closure::wrap(Box::new(move |event: MouseEvent| {
-    //         gloo::console::log!("Is down: ", *is_mouse_down);
-    //         // if *is_mouse_down {
-    //         //     gloo::console::log!("Mouse Move at:", event.client_x(), event.client_y());
-    //         // }
-    //     }) as Box<dyn FnMut(_)>);
-    //     web_sys::window()
-    //         .unwrap()
-    //         .add_event_listener_with_callback("mousemove", callback.as_ref().unchecked_ref())
-    //         .unwrap();
-    //     callback.forget();
-    // });
 
     html! {
         <div class={stylesheet}>
