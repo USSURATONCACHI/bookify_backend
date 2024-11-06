@@ -24,6 +24,7 @@ pub fn main(_props: &MainProps) -> Html {
                         </div>
                         <div class="row">
                             <div class="col-12">
+                                <organisms::Actions/>
                                 <organisms::Publications/>
                             </div>
                         </div>

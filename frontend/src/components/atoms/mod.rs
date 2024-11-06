@@ -1,7 +1,7 @@
 mod axis;
 mod axis_item;
-mod sigma;
+mod publication;
 
 pub use axis::*;
 pub use axis_item::*;
-pub use sigma::*;
+pub use publication::*;

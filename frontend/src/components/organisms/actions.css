@@ -1,0 +1,73 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 2rem;
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.actions-list .item {
+  width: 12rem;
+  height: 12rem;
+}
+
+button {
+  font-size: 1rem;
+  font-weight: 900;
+
+  background-color: #111;
+  border-radius: 1rem;
+  padding: 1rem;
+
+  text-align: center;
+  color: white;
+  border: none;
+  position: relative;
+
+  cursor: grabbing;
+}
+
+button .icon {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+  height: 50%;
+
+  transition: all 0.2s;
+}
+
+button:hover .icon {
+  top: 50%;
+}
+
+button .gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: rgb(16, 16, 16);
+  background: linear-gradient(
+    0deg,
+    rgba(16, 16, 16, 1) 0%,
+    rgba(16, 16, 16, 0) 100%
+  );
+  border-radius: 1rem;
+}
+
+button p {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  width: 100%;
+  transform: translate(-50%);
+}

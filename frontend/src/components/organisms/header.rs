@@ -12,14 +12,8 @@ pub fn header(_props: &HeaderProps) -> Html {
 
     html! {
         <div class={stylesheet}>
-            <div class="bootstrap-wrapper">
-                <div class="container">
-                    <div class="row">
-                        <div class="header">
-                            <h2>{"Цифровые публикации"}</h2>
-                        </div>
-                    </div>
-                </div>
+            <div class="header">
+                <h2>{"Цифровые публикации"}</h2>
             </div>
         </div>
     }
