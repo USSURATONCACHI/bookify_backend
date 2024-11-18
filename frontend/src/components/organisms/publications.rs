@@ -19,14 +19,15 @@ pub fn publications(_props: &PublicationsProps) -> Html {
             <atoms::SearchBar placeholder={"Поиск публикаций..."}/>
             <table>
                 <tr class="header-row">
+                    <th class="checkbox-column">{"⌷"}</th>
                     <th>{"Название"}</th>
                     <th>{"Описание"}</th>
                 </tr>
-                <atoms::Publication name="Sigma"             description="The one"/>
-                <atoms::Publication name="Ohio"              description="State"/>
-                <atoms::Publication name="Rizzler"           description="Skibidi"/>
-                <atoms::Publication name="Still Water"       description="Oh no..."/>
-                <atoms::Publication name="Mango Mango Mango" description="Those who know..."/>
+                <atoms::Publication name="Alpha"   description="Alpha of the one"/>
+                <atoms::Publication name="Beta"    description="Beta of state"/>
+                <atoms::Publication name="Gamma"   description="Gamma of ski-buddies"/>
+                <atoms::Publication name="Delta"   description="Delta of oh no..."/>
+                <atoms::Publication name="Epsilon" description="Epsilon of those who know..."/>
             </table>
         </div>
     }

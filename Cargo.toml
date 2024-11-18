@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "backend", "frontend",
+    "backend", "frontend", "rusmarc_raw", "rusmarc_raw_macros",
 ]
 resolver = "2"

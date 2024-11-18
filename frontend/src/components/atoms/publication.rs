@@ -33,8 +33,11 @@ pub fn publication(props: &PublicationProps) -> Html {
 
     html! {
         <tr class={stylesheet}>
-            <td>{&props.name}</td>
-            <td>{descr}</td>
+            <td class="checkbox-column">
+                <input type="checkbox"/>
+            </td>
+            <td class="texttd">{&props.name}</td>
+            <td class="texttd">{descr}</td>
         </tr>
     }
 }
