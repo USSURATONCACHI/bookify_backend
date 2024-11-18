@@ -1,3 +1,7 @@
+use rusmarc_raw_macros::TypedField;
+
+use crate::typed_record::{AnyTypedField, TypedField};
+
 /// Тип даты
 #[derive(Debug)]
 pub enum DateType {
@@ -283,6 +287,7 @@ impl From<String> for TitleGraphics {
 }
 
 /// 100 ДАННЫЕ ОБЩЕЙ ОБРАБОТКИ
+#[derive(Debug, TypedField)]
 pub struct Field100GeneralProcessingData {
     ///  $a / 0-7   Дата ввода записи в файл   (M - заполнение обязательно)
     pub date_input: String,
@@ -311,6 +316,7 @@ pub struct Field100GeneralProcessingData {
 }
 
 /// 101 ЯЗЫК ДОКУМЕНТА
+#[derive(Debug, TypedField)]
 pub struct Field101Language {
     /// $a   Язык текста, звукозаписи и т.д.
     pub language_text: Option<String>,
@@ -335,6 +341,7 @@ pub struct Field101Language {
 }
 
 /// 102 СТРАНА ПУБЛИКАЦИИ ИЛИ ПРОИЗВОДСТВА
+#[derive(Debug, TypedField)]
 pub struct Field102CountryOfPublication {
     /// $a   Страна публикации
     pub country_of_publication: Option<String>,
@@ -664,6 +671,7 @@ impl From<String> for HigherEducationDegreeCode {
 }
 
 /// 105 ПОЛЕ КОДИРОВАННЫХ ДАННЫХ: ТЕКСТОВЫЕ МАТЕРИАЛЫ, МОНОГРАФИЧЕСКИЕ
+#[derive(Debug, TypedField)]
 pub struct Field105TextMaterials {
     /// $a / 0-3   Коды иллюстраций
     pub illustration_codes: Vec<IllustrationCode>,
@@ -731,7 +739,33 @@ impl From<String> for DocumentForm {
 }
 
 /// 106 ПОЛЕ КОДИРОВАННЫХ ДАННЫХ: ФОРМА ДОКУМЕНТА
+#[derive(Debug, TypedField)]
 pub struct Field106DocumentForm {
     /// $a   Форма документа: кодированные данные: обозначение носителя
-    pub document_form: Option<DocumentForm>,
+    pub document_form: DocumentForm,
 }
+
+// TODO: Field 110
+// TODO: Field 115
+// TODO: Field 116
+// TODO: Field 117
+// TODO: Field 120
+// TODO: Field 121
+// TODO: Field 122
+// TODO: Field 123
+// TODO: Field 124
+// TODO: Field 125
+// TODO: Field 126
+// TODO: Field 127
+// TODO: Field 128
+// TODO: Field 130
+// TODO: Field 131
+// TODO: Field 135
+// TODO: Field 139
+// TODO: Field 140
+// TODO: Field 141
+// TODO: Field 145
+// TODO: Field 146
+// TODO: Field 181
+// TODO: Field 182
+// TODO: Field 183

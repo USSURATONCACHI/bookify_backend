@@ -8,57 +8,82 @@ mod fields1xx;
 
 use std::any::Any;
 
+use crate::field::FieldData;
 pub use fields0xx::*;
 pub use fields1xx::*;
 
 pub trait TypedField {
-    fn field_number(&self) -> i128;
+    fn field_number(&self) -> u128;
 }
 
-pub trait AnyTypedField: Any + TypedField {}
+type ParseTypedFieldError = String;
+pub trait ParseTypedField {
+    fn parse(data: FieldData) -> Result<Box<dyn AnyTypedField>, ParseTypedFieldError>;
+}
+
+pub trait AnyTypedField {
+    fn any_ref(&self) -> &dyn Any;
+    fn any_mut(&mut self) -> &mut dyn Any;
+
+    fn typed_field_ref(&self) -> &dyn TypedField;
+    fn typed_field_mut(&mut self) -> &mut dyn TypedField;
+
+    fn field_number(&self) -> u128 {
+        self.typed_field_ref().field_number()
+    }
+}
+
+impl<T: Any + TypedField> AnyTypedField for T {
+    fn any_ref(&self) -> &dyn Any {
+        self as &dyn Any
+    }
+    fn any_mut(&mut self) -> &mut dyn Any {
+        self as &mut dyn Any
+    }
+
+    fn typed_field_ref(&self) -> &dyn TypedField {
+        self as &dyn TypedField
+    }
+    fn typed_field_mut(&mut self) -> &mut dyn TypedField {
+        self as &mut dyn TypedField
+    }
+}
 
 /// Typed collection of fields, in accordance to RUSMARC documentation.
-#[rustfmt::skip]
 pub struct TypedRecord {
     pub fields: Vec<Box<dyn AnyTypedField>>,
-    // --- Fields 0xx
-    /// 001 ИДЕНТИФИКАТОР ЗАПИСИ
-    pub f001_record_id:                     Vec<Field001RecordId>,
-    /// 003 ПОСТОЯННЫЙ ИДЕНТИФИКАТОР ЗАПИСИ
-    pub f003_constant_record_id:            Vec<Field003PersistentRecordId>,
-    pub f005_version:                       Vec<Field005Version>,
-    pub f010_isbn:                          Vec<Field010Isbn>,
-    pub f011_issn:                          Vec<Field011Issn>,
-    pub f012_fingerprint:                   Vec<Field012Fingerprint>,
-    pub f013_ismn:                          Vec<Field013Ismn>,
-    pub f014_article_id:                    Vec<Field014ArticleId>,
-    pub f015_isrn:                          Vec<Field015Isrn>,
-    pub f016_isrc:                          Vec<Field016Isrc>,
-    pub f017_other_standard_id:             Vec<Field017OtherStandardId>,
-    pub f020_national_bibliography_number:  Vec<Field020NationalBibliographyNumber>,
-    pub f021_state_registration_number:     Vec<Field021StateRegistrationNumber>,
-    pub f022_government_publication_number: Vec<Field022GovernmentPublicationNumber>,
-    pub f029_document_number:               Vec<Field029DocumentNumber>,
-    pub f033_persistent_id:                 Vec<Field033PersistentId>,
-    pub f035_other_system_numbers:          Vec<Field035OtherSystemNumbers>,
-    pub f036_musical_incipit:               Vec<Field036MusicalIncipit>,
-    pub f039_patent_application_number:     Vec<Field039PatentApplicationNumber>,
-    pub f071_publisher_number:              Vec<Field071PublisherNumber>,
-    pub f073_ean:                           Vec<Field073Ean>,
-    #[deprecated]
-    pub f079_publisher_numbers_deprecated:  Vec<Field079PublisherNumbers>,
+}
 
-    // --- Fields 1xx
-    pub f100_general_processing_data: Vec<Field100GeneralProcessingData>,
-    pub f101_language:                Vec<Field101Language>,
-    pub f102_country_of_publication:  Vec<Field102CountryOfPublication>,
-    pub f105_text_materials:          Vec<Field105TextMaterials>,
-    pub f106_document_form:           Vec<Field106DocumentForm>,
-    // TODO: Field 110
-    // TODO: Field 115
-    // TODO: Field 116
-    // TODO: Field 117
-    // TODO: Field 120
-    // TODO: Field 
-    // TODO: Field 
+#[rustfmt::skip]
+pub fn parse_typed_field(field: crate::field::Field) -> Result<Box<dyn AnyTypedField>, String> {
+    match field.number {
+        001 => Field001RecordId                   ::parse(field.data),
+        003 => Field003PersistentRecordId         ::parse(field.data),
+        // 005 => Field005Version                    ::parse(data.data),
+        // 010 => Field010Isbn                       ::parse(data.data),
+        // 011 => Field011Issn                       ::parse(data.data),
+        // 012 => Field012Fingerprint                ::parse(data.data),
+        // 013 => Field013Ismn                       ::parse(data.data),
+        // 014 => Field014ArticleId                  ::parse(data.data),
+        // 015 => Field015Isrn                       ::parse(data.data),
+        // 016 => Field016Isrc                       ::parse(data.data),
+        // 017 => Field017OtherStandardId            ::parse(data.data),
+        // 020 => Field020NationalBibliographyNumber ::parse(data.data),
+        // 021 => Field021StateRegistrationNumber    ::parse(data.data),
+        // 022 => Field022GovernmentPublicationNumber::parse(data.data),
+        // 029 => Field029DocumentNumber             ::parse(data.data),
+        // 033 => Field033PersistentId               ::parse(data.data),
+        // 035 => Field035OtherSystemNumbers         ::parse(data.data),
+        // 036 => Field036MusicalIncipit             ::parse(data.data),
+        // 039 => Field039PatentApplicationNumber    ::parse(data.data),
+        // 071 => Field071PublisherNumber            ::parse(data.data),
+        // 073 => Field073Ean                        ::parse(data.data),
+        // 079 => Field079PublisherNumbers           ::parse(data.data),
+        // 100 => Field100GeneralProcessingData      ::parse(data.data),
+        // 101 => Field101Language                   ::parse(data.data),
+        // 102 => Field102CountryOfPublication       ::parse(data.data),
+        // 105 => Field105TextMaterials              ::parse(data.data),
+        // 106 => Field106DocumentForm               ::parse(data.data),
+        _ => Err("Unknown field type".to_owned()),
+    }
 }

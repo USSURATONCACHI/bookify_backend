@@ -1,30 +1,41 @@
-use rusmarc_raw_macros::TypedField;
+use rusmarc_raw_macros::{ParseTypedField, TypedField};
 
-use super::TypedField;
+use crate::field::FieldData;
+use crate::typed_record::{AnyTypedField, ParseTypedField, ParseTypedFieldError, TypedField};
 
 /// 001 ИДЕНТИФИКАТОР ЗАПИСИ
-#[derive(TypedField)]
+#[derive(Debug, TypedField, ParseTypedField)]
 pub struct Field001RecordId {
     pub id: String,
 }
+impl Field001RecordId {
+    pub fn new(text: String) -> Self {
+        Self { id: text }
+    }
+}
 
 /// 003 ПОСТОЯННЫЙ ИДЕНТИФИКАТОР ЗАПИСИ
-#[derive(TypedField)]
+#[derive(Debug, TypedField, ParseTypedField)]
 pub struct Field003PersistentRecordId {
     pub id: String,
+}
+impl Field003PersistentRecordId {
+    pub fn new(text: String) -> Self {
+        Self { id: text }
+    }
 }
 
 /// 005 ИДЕНТИФИКАТОР ВЕРСИИ
 ///
 /// `ГГГГММДДЧЧММСС.Т` (eng: `yyyymmddHHMMSS.T`)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field005Version {
     pub unix_seconds: i128,
     pub t: u32, // idk wtf is that T, it is not clear
 }
 
 /// 010 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР КНИГИ (ISBN)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field010Isbn {
     /// $a   Номер (ISBN)
     pub isbn: Option<String>,
@@ -39,7 +50,7 @@ pub struct Field010Isbn {
 }
 
 /// 011 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР СЕРИАЛЬНОГО ИЗДАНИЯ (ISSN)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field011Issn {
     /// $a   Номер (ISSN)
     pub issn: Option<String>,
@@ -60,7 +71,7 @@ pub struct Field011Issn {
 }
 
 /// 012 ИДЕНТИФИКАТОР ФИНГЕРПРИНТ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field012Fingerprint {
     /// $a   Фингерпринт
     pub fingerprint: Option<String>,
@@ -73,7 +84,7 @@ pub struct Field012Fingerprint {
 }
 
 /// 013 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР ИЗДАНИЯ МУЗЫКАЛЬНОГО ПРОИЗВЕДЕНИЯ (ISMN)     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field013Ismn {
     /// $a   Номер (ISMN)
     pub ismn: Option<String>,
@@ -88,7 +99,7 @@ pub struct Field013Ismn {
 }
 
 /// 014 ИДЕНТИФИКАТОР СТАТЬИ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field014ArticleId {
     /// $a   Идентификатор статьи
     pub id: Option<String>,
@@ -99,7 +110,7 @@ pub struct Field014ArticleId {
 }
 
 /// 015 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР ТЕХНИЧЕСКОГО ОТЧЕТА (ISRN)     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field015Isrn {
     /// $a   Номер (ISRN)
     pub isrn: Option<String>,
@@ -114,7 +125,7 @@ pub struct Field015Isrn {
 }
 
 /// 016 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР АУДИО/ВИДЕО ЗАПИСИ (ISRC)     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field016Isrc {
     /// $a   Номер (ISRC)
     pub isrc: Option<String>,
@@ -129,7 +140,7 @@ pub struct Field016Isrc {
 }
 
 /// 017 ДРУГОЙ СТАНДАРТНЫЙ ИДЕНТИФИКАТОР     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field017OtherStandardId {
     /// $a   Стандартный номер
     pub standard_number: Option<String>,
@@ -146,7 +157,7 @@ pub struct Field017OtherStandardId {
 }
 
 /// 020 НОМЕР ДОКУМЕНТА В НАЦИОНАЛЬНОЙ БИБЛИОГРАФИИ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field020NationalBibliographyNumber {
     /// $a   Код страны
     pub country_code: Option<String>,
@@ -159,7 +170,7 @@ pub struct Field020NationalBibliographyNumber {
 }
 
 /// 021 НОМЕР ГОСУДАРСТВЕННОЙ РЕГИСТРАЦИИ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field021StateRegistrationNumber {
     /// $a   Код страны
     pub country_code: Option<String>,
@@ -172,7 +183,7 @@ pub struct Field021StateRegistrationNumber {
 }
 
 /// 022 НОМЕР ПУБЛИКАЦИИ ОРГАНА ГОСУДАРСТВЕННОЙ ВЛАСТИ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field022GovernmentPublicationNumber {
     /// $a   Код страны
     pub country_code: Option<String>,
@@ -183,7 +194,7 @@ pub struct Field022GovernmentPublicationNumber {
 }
 
 /// 029 НОМЕР ДОКУМЕНТА (НОРМАТИВНЫЕ И ТЕХНИЧЕСКИЕ ДОКУМЕНТЫ. НЕОПУБЛИКОВАННЫЕ ДОКУМЕНТЫ)     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field029DocumentNumber {
     /// $a   Страна или международная организация, присвоившая номер
     pub country_or_org: Option<String>,
@@ -198,7 +209,7 @@ pub struct Field029DocumentNumber {
 }
 
 /// 033 ПОСТОЯННЫЙ ИДЕНТИФИКАТОР ЗАПИСИ ДРУГОЙ СИСТЕМЫ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field033PersistentId {
     /// $a   Идентификатор записи
     pub record_id: Option<String>,
@@ -207,7 +218,7 @@ pub struct Field033PersistentId {
 }
 
 /// 035 ДРУГИЕ СИСТЕМНЫЕ НОМЕРА     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field035OtherSystemNumbers {
     /// $a   Идентификатор записи
     pub record_id: Option<String>,
@@ -216,7 +227,7 @@ pub struct Field035OtherSystemNumbers {
 }
 
 /// 036 МУЗЫКАЛЬНЫЙ ИНЦИПИТ     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field036MusicalIncipit {
     /// $a   Номер произведения
     pub work_number: Option<String>,
@@ -255,7 +266,7 @@ pub struct Field036MusicalIncipit {
 }
 
 /// 039 НОМЕР ЗАЯВКИ (ПАТЕНТНЫЕ ДОКУМЕНТЫ)     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field039PatentApplicationNumber {
     /// $a   Страна
     pub country: Option<String>,
@@ -266,7 +277,7 @@ pub struct Field039PatentApplicationNumber {
 }
 
 /// 071 ИЗДАТЕЛЬСКИЙ НОМЕР     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field071PublisherNumber {
     /// $a   Номер, присвоенный агентством
     pub assigned_number: Option<String>,
@@ -281,7 +292,7 @@ pub struct Field071PublisherNumber {
 }
 
 /// 073 МЕЖДУНАРОДНЫЙ НОМЕР ТОВАРА (EAN)     (П)
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field073Ean {
     /// $a   Стандартный номер (EAN)
     pub standard_number: Option<String>,
@@ -299,7 +310,7 @@ pub struct Field073Ean {
 
 /// 079 ИЗДАТЕЛЬСКИЕ НОМЕРА (КРОМЕ ЗВУКОЗАПИСЕЙ И НОТНЫХ ИЗДАНИЙ) (устаревшее)     (П)
 #[deprecated]
-#[derive(TypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field079PublisherNumbers {
     /// $a   Издательский номер, присвоенный агентством
     pub assigned_number: Option<String>,
