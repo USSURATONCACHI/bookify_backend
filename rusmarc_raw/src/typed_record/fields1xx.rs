@@ -1,6 +1,6 @@
 use rusmarc_raw_macros::TypedField;
 
-use crate::typed_record::{AnyTypedField, TypedField};
+use crate::typed_record::TypedField;
 
 /// Тип даты
 #[derive(Debug)]
@@ -187,7 +187,7 @@ pub enum CharacterSets {
     Iso8957Table1,
     ///  09 = ISO 8957 (набор символов иврита) таблица 2
     Iso8957Table2,
-    ///  10 [Зарезервировано]
+    ///  10 \[Зарезервировано\]
     Reserved,
     ///  11 = ISO 5426-2 (латинские символы, используемые в редких европейских языках и устаревших типографиях)
     Iso54262,
@@ -745,7 +745,6 @@ pub struct Field106DocumentForm {
     pub document_form: DocumentForm,
 }
 
-// TODO: Field 110
 // TODO: Field 115
 // TODO: Field 116
 // TODO: Field 117
@@ -759,13 +758,16 @@ pub struct Field106DocumentForm {
 // TODO: Field 127
 // TODO: Field 128
 // TODO: Field 130
-// TODO: Field 131
 // TODO: Field 135
 // TODO: Field 139
 // TODO: Field 140
 // TODO: Field 141
 // TODO: Field 145
 // TODO: Field 146
+// TODO: Field 183
+
+// TODO: Field 110
+// TODO: Field 131
+// WTF is field 132?
 // TODO: Field 181
 // TODO: Field 182
-// TODO: Field 183

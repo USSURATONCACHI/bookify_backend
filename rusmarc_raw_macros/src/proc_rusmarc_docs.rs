@@ -54,7 +54,7 @@ fn rustmarc_docs_impl(
     Ok(output.into())
 }
 
-fn get_line(text: &str) -> &str {
+fn _get_line(text: &str) -> &str {
     match text.find("\n") {
         Some(offset) => &text[..offset],
         None => text,
@@ -154,7 +154,7 @@ fn parse_field(
     }
 
     // Collect field comment
-    let field_comment = collect_till_line_end(after_name, &mut next_tt)?;
+    let _field_comment = collect_till_line_end(after_name, &mut next_tt)?;
     let _ = range; // TODO: Use ranges
 
     Ok(Some(quote! {
