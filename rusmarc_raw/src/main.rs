@@ -37,4 +37,5 @@ fn main() {
             writer.flush().unwrap();
         }
     }
+    writer.flush().unwrap();
 }
