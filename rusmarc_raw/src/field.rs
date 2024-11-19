@@ -2,6 +2,8 @@ use std::io::{self, BufRead};
 
 use serde::{Deserialize, Serialize};
 
+use crate::typed_record::{AnyTypedField, ParseTypedField, ParseTypedFieldError};
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Subfield {
     pub marker: char,
@@ -12,6 +14,51 @@ pub struct Subfield {
 pub enum FieldData {
     FullLine { text: String },
     Subfields { subfields: Vec<Subfield> },
+}
+
+impl FieldData {
+    pub fn as_singular_text(&self) -> Option<&str> {
+        match self {
+            Self::FullLine { text } => Some(text.as_str()),
+            Self::Subfields { subfields } => {
+                if subfields.len() > 0 {
+                    None
+                } else {
+                    Some(&subfields[0].text)
+                }
+            }
+        }
+    }
+    pub fn get_main_subfields(&self) -> Vec<&str> {
+        self.get_subfields('a')
+    }
+
+    pub fn get_subfields(&self, marker: char) -> Vec<&str> {
+        let marker = marker.to_lowercase().next().unwrap();
+
+        match self {
+            Self::FullLine { text } => {
+                if marker == 'a' {
+                    vec![text.as_str()]
+                } else {
+                    vec![]
+                }
+            }
+            Self::Subfields { subfields } => subfields
+                .iter()
+                .filter(|s| {
+                    s.marker.is_ascii() && s.marker.to_lowercase().next().unwrap() == marker
+                })
+                .map(|s| s.text.as_str())
+                .collect(),
+        }
+    }
+}
+
+impl FieldData {
+    pub fn parse<T: ParseTypedField>(self) -> Result<Box<dyn AnyTypedField>, ParseTypedFieldError> {
+        T::parse(self)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

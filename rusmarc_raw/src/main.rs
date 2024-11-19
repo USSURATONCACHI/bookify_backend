@@ -2,7 +2,7 @@ use std::io::Write;
 use std::{fs::File, io::BufReader};
 
 use rusmarc_raw::record::{record_remove_errors, RecordsReader};
-use rusmarc_raw::typed_record::{Field001RecordId, TypedRecord};
+use rusmarc_raw::typed_record::TypedRecord;
 
 fn main() {
     println!("Hello, world!");
@@ -25,9 +25,13 @@ fn main() {
         let (record, errors) = TypedRecord::parse(record.into_iter());
         writeln!(&mut writer, "Errors count: {:?}", errors.len()).unwrap();
 
-        for f001 in record.get_fields::<Field001RecordId>() {
-            writeln!(&mut writer, "Field 001: {:?}", f001).unwrap();
+        for field in record.fields {
+            writeln!(&mut writer, "{:?}", field).unwrap();
         }
+
+        // for f001 in record.get_fields::<Field001RecordId>() {
+        //     writeln!(&mut writer, "Field 001: {:?}", f001).unwrap();
+        // }
 
         if i % 1000 == 0 {
             writer.flush().unwrap();

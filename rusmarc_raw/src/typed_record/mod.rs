@@ -5,20 +5,32 @@
 
 mod fields0xx;
 mod fields1xx;
+mod fields2xx;
+mod util;
 
 use std::{any::Any, marker::PhantomData};
 
 use crate::field::FieldData;
 pub use fields0xx::*;
 pub use fields1xx::*;
+pub use fields2xx::*;
 
-pub trait TypedField {
+pub trait TypedField: std::fmt::Debug {
     fn field_number(&self) -> u128;
 }
 
-type ParseTypedFieldError = String;
+pub type ParseTypedFieldError = String;
 pub trait ParseTypedField {
     fn parse(data: FieldData) -> Result<Box<dyn AnyTypedField>, ParseTypedFieldError>;
+}
+
+impl<T> ParseTypedField for T
+where
+    T: 'static + AnyTypedField + TryFrom<FieldData, Error = ParseTypedFieldError>,
+{
+    fn parse(data: FieldData) -> Result<Box<dyn AnyTypedField>, ParseTypedFieldError> {
+        Self::try_from(data).map(|x| Box::new(x) as _)
+    }
 }
 
 pub trait AnyTypedField: std::fmt::Debug {
@@ -78,6 +90,7 @@ impl<T: Any + TypedField + std::fmt::Debug> AnyTypedField for T {
 /// let id2 = record2.get_fields::<Field001RecordId>().next().unwrap();
 /// assert_eq!(id2.id, "id-002");
 /// ```
+#[derive(Debug)]
 pub struct TypedRecord {
     pub fields: Vec<Box<dyn AnyTypedField>>,
 }
@@ -144,33 +157,34 @@ impl TypedRecord {
 #[rustfmt::skip]
 pub fn parse_typed_field(field: crate::field::Field) -> Result<Box<dyn AnyTypedField>, String> {
     match field.number {
-        001 => Field001RecordId                   ::parse(field.data),
-        003 => Field003PersistentRecordId         ::parse(field.data),
-        // 005 => Field005Version                    ::parse(data.data),
-        // 010 => Field010Isbn                       ::parse(data.data),
-        // 011 => Field011Issn                       ::parse(data.data),
-        // 012 => Field012Fingerprint                ::parse(data.data),
-        // 013 => Field013Ismn                       ::parse(data.data),
-        // 014 => Field014ArticleId                  ::parse(data.data),
-        // 015 => Field015Isrn                       ::parse(data.data),
-        // 016 => Field016Isrc                       ::parse(data.data),
-        // 017 => Field017OtherStandardId            ::parse(data.data),
-        // 020 => Field020NationalBibliographyNumber ::parse(data.data),
-        // 021 => Field021StateRegistrationNumber    ::parse(data.data),
-        // 022 => Field022GovernmentPublicationNumber::parse(data.data),
-        // 029 => Field029DocumentNumber             ::parse(data.data),
-        // 033 => Field033PersistentId               ::parse(data.data),
-        // 035 => Field035OtherSystemNumbers         ::parse(data.data),
-        // 036 => Field036MusicalIncipit             ::parse(data.data),
-        // 039 => Field039PatentApplicationNumber    ::parse(data.data),
-        // 071 => Field071PublisherNumber            ::parse(data.data),
-        // 073 => Field073Ean                        ::parse(data.data),
-        // 079 => Field079PublisherNumbers           ::parse(data.data),
-        // 100 => Field100GeneralProcessingData      ::parse(data.data),
-        // 101 => Field101Language                   ::parse(data.data),
-        // 102 => Field102CountryOfPublication       ::parse(data.data),
-        // 105 => Field105TextMaterials              ::parse(data.data),
-        // 106 => Field106DocumentForm               ::parse(data.data),
+        001 => field.data.parse::<Field001RecordId>(),
+        003 => field.data.parse::<Field003PersistentRecordId>(),
+        005 => field.data.parse::<Field005Version>(),
+        010 => field.data.parse::<Field010Isbn>(),
+        200 => field.data.parse::<Field200Header>(),
+        // 011 => field.data.parse::<Field011Issn>(),
+        // 012 => field.data.parse::<Field012Fingerprint>(),
+        // 013 => field.data.parse::<Field013Ismn>(),
+        // 014 => field.data.parse::<Field014ArticleId>(),
+        // 015 => field.data.parse::<Field015Isrn>(),
+        // 016 => field.data.parse::<Field016Isrc>(),
+        // 017 => field.data.parse::<Field017OtherStandardId>(),
+        // 020 => field.data.parse::<Field020NationalBibliographyNumber>(),
+        // 021 => field.data.parse::<Field021StateRegistrationNumber>(),
+        // 022 => field.data.parse::<Field022GovernmentPublicationNumber>(),
+        // 029 => field.data.parse::<Field029DocumentNumber>(),
+        // 033 => field.data.parse::<Field033PersistentId>(),
+        // 035 => field.data.parse::<Field035OtherSystemNumbers>(),
+        // 036 => field.data.parse::<Field036MusicalIncipit>(),
+        // 039 => field.data.parse::<Field039PatentApplicationNumber>(),
+        // 071 => field.data.parse::<Field071PublisherNumber>(),
+        // 073 => field.data.parse::<Field073Ean>(),
+        // 079 => field.data.parse::<Field079PublisherNumbers>(),
+        // 100 => field.data.parse::<Field100GeneralProcessingData>(),
+        // 101 => field.data.parse::<Field101Language>(),
+        // 102 => field.data.parse::<Field102CountryOfPublication>(),
+        // 105 => field.data.parse::<Field105TextMaterials>(),
+        // 106 => field.data.parse::<Field106DocumentForm>(),
         _ => Err("Unknown field type".to_owned()),
     }
 }

@@ -1,27 +1,53 @@
-use rusmarc_raw_macros::{ParseTypedField, TypedField};
+use std::num::ParseIntError;
+
+use rusmarc_raw_macros::TypedField;
 
 use crate::field::FieldData;
-use crate::typed_record::{AnyTypedField, ParseTypedField, ParseTypedFieldError, TypedField};
+use crate::typed_record::{ParseTypedFieldError, TypedField};
+
+use super::util::{concat_subfields, expect_max_one_subfield};
 
 /// 001 ИДЕНТИФИКАТОР ЗАПИСИ
-#[derive(Debug, TypedField, ParseTypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field001RecordId {
     pub id: String,
 }
-impl Field001RecordId {
-    pub fn new(text: String) -> Self {
-        Self { id: text }
+impl From<String> for Field001RecordId {
+    fn from(value: String) -> Self {
+        Self { id: value }
+    }
+}
+impl TryFrom<FieldData> for Field001RecordId {
+    type Error = ParseTypedFieldError;
+
+    fn try_from(value: FieldData) -> Result<Self, Self::Error> {
+        Ok(value
+            .as_singular_text()
+            .ok_or("Record ID #001 cannot have subfields".to_string())?
+            .to_string()
+            .into())
     }
 }
 
 /// 003 ПОСТОЯННЫЙ ИДЕНТИФИКАТОР ЗАПИСИ
-#[derive(Debug, TypedField, ParseTypedField)]
+#[derive(Debug, TypedField)]
 pub struct Field003PersistentRecordId {
     pub id: String,
 }
-impl Field003PersistentRecordId {
-    pub fn new(text: String) -> Self {
-        Self { id: text }
+impl From<String> for Field003PersistentRecordId {
+    fn from(value: String) -> Self {
+        Self { id: value }
+    }
+}
+impl TryFrom<FieldData> for Field003PersistentRecordId {
+    type Error = ParseTypedFieldError;
+
+    fn try_from(value: FieldData) -> Result<Self, Self::Error> {
+        Ok(value
+            .as_singular_text()
+            .ok_or("Record ID #003 cannot have subfields".to_string())?
+            .to_string()
+            .into())
     }
 }
 
@@ -30,15 +56,105 @@ impl Field003PersistentRecordId {
 /// `ГГГГММДДЧЧММСС.Т` (eng: `yyyymmddHHMMSS.T`)
 #[derive(Debug, TypedField)]
 pub struct Field005Version {
-    pub unix_seconds: i128,
+    pub year: u16,
+    pub month: u16,
+    pub day: u16,
+    pub hour: u16,
+    pub minute: u16,
+    pub second: u16,
     pub t: u32, // idk wtf is that T, it is not clear
+}
+
+impl Default for Field005Version {
+    fn default() -> Self {
+        Self {
+            year: Default::default(),
+            month: Default::default(),
+            day: Default::default(),
+            hour: Default::default(),
+            minute: Default::default(),
+            second: Default::default(),
+            t: Default::default(),
+        }
+    }
+}
+
+impl TryFrom<FieldData> for Field005Version {
+    type Error = ParseTypedFieldError;
+
+    fn try_from(data: FieldData) -> Result<Self, ParseTypedFieldError> {
+        let data = data
+            .as_singular_text()
+            .ok_or("Version cannot have subfields".to_string())?;
+
+        Self::try_from(data)
+    }
+}
+
+impl TryFrom<&str> for Field005Version {
+    type Error = ParseTypedFieldError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let value = value.trim();
+
+        if value.chars().any(|c| !c.is_digit(10) && c != '.') || !value.is_ascii() {
+            return Err("Contains characters besides digits and points".to_string());
+        }
+
+        let split: Vec<&str> = value.split('.').collect();
+        if split.len() > 2 {
+            return Err("Value has multiple points".to_string());
+        }
+        let base = split[0];
+        let t_text = split[1];
+
+        // Start parsing
+
+        let mut result = Field005Version::default();
+
+        // Parse t
+        if t_text.len() > 0 {
+            result.t = t_text
+                .parse()
+                .map_err(|e: ParseIntError| -> String { e.to_string() })?;
+        }
+
+        // Parse year
+        // [name, digits, reference]
+        let parts: [(&str, usize, &mut u16); 6] = [
+            ("year", 4, &mut result.year),
+            ("month", 2, &mut result.month),
+            ("day", 2, &mut result.day),
+            ("hour", 2, &mut result.hour),
+            ("minute", 2, &mut result.minute),
+            ("second", 2, &mut result.second),
+        ];
+
+        let mut base = base;
+        for (name, digits_count, store_to) in parts {
+            if base.len() == 0 {
+                break;
+            }
+            if value.len() < digits_count {
+                return Err(format!("No {} specified", name));
+            }
+            let part;
+            (part, base) = base.split_at(digits_count);
+
+            *store_to = part
+                .parse::<u16>()
+                .map_err(|err| format!("Failed to parse {} from '{}': {:?}", name, part, err))?;
+        }
+
+        return Ok(result);
+    }
 }
 
 /// 010 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР КНИГИ (ISBN)
 #[derive(Debug, TypedField)]
 pub struct Field010Isbn {
     /// $a   Номер (ISBN)
-    pub isbn: Option<String>,
+    pub isbn: String,
     ///$b   Уточнения     (П)
     pub clarifications: Option<String>,
     /// $d   Цена
@@ -47,6 +163,42 @@ pub struct Field010Isbn {
     pub errorneous_isbn: Option<String>,
     /// $9   Тираж     (П)
     pub circulation: Option<String>,
+}
+
+impl TryFrom<FieldData> for Field010Isbn {
+    type Error = ParseTypedFieldError;
+
+    fn try_from(data: FieldData) -> Result<Self, Self::Error> {
+        // Just subfields
+        let isbn = data.get_subfields('a');
+        let clarifications = data.get_subfields('b');
+        let price = data.get_subfields('d');
+        let error_isbn = data.get_subfields('z');
+        let circulation = data.get_subfields('9');
+
+        // One string per subfield
+        let isbn = expect_max_one_subfield(isbn)?;
+        let error_isbn = expect_max_one_subfield(error_isbn)?;
+        let price = expect_max_one_subfield(price)?;
+
+        let clarifications = concat_subfields(clarifications);
+        let circulation = concat_subfields(circulation);
+
+        // Parse
+        if isbn.is_none() {
+            return Err("No ISBN specified".to_string());
+        }
+        let isbn = isbn.unwrap();
+
+        // Result
+        Ok(Self {
+            isbn: isbn.to_owned(),
+            clarifications,
+            price: price.map(|x| x.to_owned()),
+            errorneous_isbn: error_isbn.map(|x| x.to_owned()),
+            circulation: circulation,
+        })
+    }
 }
 
 /// 011 МЕЖДУНАРОДНЫЙ СТАНДАРТНЫЙ НОМЕР СЕРИАЛЬНОГО ИЗДАНИЯ (ISSN)
