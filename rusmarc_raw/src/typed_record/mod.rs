@@ -162,7 +162,7 @@ pub fn parse_typed_field(field: crate::field::Field) -> Result<Box<dyn AnyTypedF
         005 => field.data.parse::<Field005Version>(),
         010 => field.data.parse::<Field010Isbn>(),
         200 => field.data.parse::<Field200Header>(),
-        _ => Err("Unknown field type".to_owned()),
+        other => Err(format!("Unimplemented field: `{other}`")),
     }
 }
 
